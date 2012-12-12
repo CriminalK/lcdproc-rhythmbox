@@ -14,15 +14,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import GObject, Peas, RB, Gio
 
 #import rb
+from gi.repository import GObject
+from gi.repository import Peas
+from gi.repository import RB
+from gi.repository import Gio
 
 import time
 from threading import Thread
 from lcdproc.server import Server
-
-#from lcdproc_config_dialog import  LCDProcPluginConfigureDialog
+from lcdproc_config_dialog import LCDProcPluginConfigureDialog
 
 ##### BEGIN CONFIGURATION #####
 #A display with 4 rows is assumed and this choice is not yet parameterised
@@ -273,6 +275,7 @@ class LCDProcPlugin (GObject.Object, Peas.Activatable):
     
     def do_activate(self):
         self.shell = self.object
+        self.config = LCDProcPluginConfigureDialog()
         if not self.connect():
              # LCDd not running
             print "LCDd not running, plugin not initialising"
@@ -348,12 +351,4 @@ class LCDProcPlugin (GObject.Object, Peas.Activatable):
         self.lcd.tn.close()
         del self.lcd
         print "Plugin disconnected"
-        
-    #FIXME Does not work since API changes
-    def create_configure_dialog(self, dialog=None):
-        if not dialog:
-            builder_file = self.find_file("config_dlg.glade")
-            dialog = LCDProcPluginConfigureDialog(builder_file).get_dialog()
-            dialog.present()
-        return dialog
 
