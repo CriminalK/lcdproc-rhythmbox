@@ -172,7 +172,8 @@ class LCDProcPlugin (GObject.Object, Peas.Activatable):
             return
         
         try:
-            if not (time >= 0 and player.get_playing()):
+            result, playing = player.get_playing()
+            if not (time >= 0 and playing):
                 return
             if self.streaming:
                 # do not append remaining time or track

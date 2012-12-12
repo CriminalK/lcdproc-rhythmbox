@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+
+<enum id="org.gnome.rhythmbox.plugins.lcdproc-plugin.scrolling_list">
+<value nick="Bouncing" value="0"/>
+<value nick="Rolling" value="1"/>
+</enum>
+
+<schema id="org.gnome.rhythmbox.plugins.lcdproc-plugin" path="/org/gnome/rhythmbox/plugins/lcdproc-plugin/">
+
+<key name='scrolling' enum='org.gnome.rhythmbox.plugins.lcdproc-plugin.scrolling_list'>
+<default>"Rolling"</default>
+</key>
+
+</schema>
+</schemalist>
