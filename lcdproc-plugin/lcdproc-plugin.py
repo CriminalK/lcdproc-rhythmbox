@@ -156,12 +156,12 @@ class scroll_thread(Thread):
     def stop_scrolling(self):
         self.running = False
 
-class LCDProcPlugin (GObject.GObject, Peas.Activatable):
+class LCDProcPlugin (GObject.Object, Peas.Activatable):
     __gtype_name__ = 'LCDProcPlugin'
-    object = GObject.property(type=GObject.GObject)
+    object = GObject.property(type=GObject.Object)
 
     def __init__ (self):
-        GObject.GObject.__init__ (self)
+        GObject.Object.__init__ (self)
         self.scrolling = None
         self.running = False
 
