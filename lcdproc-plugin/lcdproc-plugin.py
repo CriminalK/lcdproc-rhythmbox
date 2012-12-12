@@ -14,19 +14,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import rb
-from gi.repository import GObject, Peas
-from gi.repository import RB
-#import gobject
-#import gtk
+from gi.repository import GObject, Peas, RB
+
+#import rb
+
 import time
-import gconf
-from lcdproc_config_dialog import  LCDProcPluginConfigureDialog
-
 from threading import Thread
-
 from lcdproc.server import Server
 
+#from lcdproc_config_dialog import  LCDProcPluginConfigureDialog
+#FIXME GConf cannot be used anymore in combination with GObject.GObject, hence we must use GSettings
 
 ##### BEGIN CONFIGURATION #####
 #A display with 4 rows is assumed and this choice is not yet parameterised
@@ -159,12 +156,12 @@ class scroll_thread(Thread):
     def stop_scrolling(self):
         self.running = False
 
-class LCDProcPlugin (GObject.Object, Peas.Activatable):
+class LCDProcPlugin (GObject.GObject, Peas.Activatable):
     __gtype_name__ = 'LCDProcPlugin'
-    object = GObject.property(type=GObject.Object)
+    object = GObject.property(type=GObject.GObject)
 
     def __init__ (self):
-        GObject.Object.__init__ (self)
+        GObject.GObject.__init__ (self)
         self.scrolling = None
         self.running = False
 
@@ -307,9 +304,10 @@ class LCDProcPlugin (GObject.Object, Peas.Activatable):
         self.artist_widget = self.screen1.add_string_widget("Widget2", x = 1, y = 2 , text = "")
         self.album_widget = self.screen1.add_string_widget("Widget3", x = 1, y = 3 , text = "")
         self.time_widget = self.screen1.add_string_widget("Widget4", x = 1, y = 4 , text = "")
-        scrollmode = gconf.client_get_default().get_string(LCDProcPluginConfigureDialog.gconf_keys['scrolling'])
-        if not scrollmode:
-            scrollmode = SCROLL_ROLLING
+#        scrollmode = gconf.client_get_default().get_string(LCDProcPluginConfigureDialog.gconf_keys['scrolling'])
+#        if not scrollmode:
+#            scrollmode = SCROLL_ROLLING
+        scrollmode = SCROLL_ROLLING
         self.scrolling = scroll_thread(scrollmode)
         self.scrolling.config([self.title_widget, self.album_widget, self.artist_widget, self.time_widget])
         self.scrolling.start()
@@ -356,5 +354,4 @@ class LCDProcPlugin (GObject.Object, Peas.Activatable):
             dialog = LCDProcPluginConfigureDialog(builder_file).get_dialog()
             dialog.present()
         return dialog
-
 
