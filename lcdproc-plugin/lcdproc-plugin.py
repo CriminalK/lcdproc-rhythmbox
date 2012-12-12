@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import GObject, Peas, RB
+from gi.repository import GObject, Peas, RB, Gio
 
 #import rb
 
@@ -23,7 +23,6 @@ from threading import Thread
 from lcdproc.server import Server
 
 #from lcdproc_config_dialog import  LCDProcPluginConfigureDialog
-#FIXME GConf cannot be used anymore in combination with GObject.GObject, hence we must use GSettings
 
 ##### BEGIN CONFIGURATION #####
 #A display with 4 rows is assumed and this choice is not yet parameterised
@@ -157,6 +156,7 @@ class scroll_thread(Thread):
         self.running = False
 
 class LCDProcPlugin (GObject.Object, Peas.Activatable):
+    BASE_KEY = "org.gnome.rhythmbox.plugins.lcdproc-plugin"
     __gtype_name__ = 'LCDProcPlugin'
     object = GObject.property(type=GObject.Object)
 
@@ -304,10 +304,10 @@ class LCDProcPlugin (GObject.Object, Peas.Activatable):
         self.artist_widget = self.screen1.add_string_widget("Widget2", x = 1, y = 2 , text = "")
         self.album_widget = self.screen1.add_string_widget("Widget3", x = 1, y = 3 , text = "")
         self.time_widget = self.screen1.add_string_widget("Widget4", x = 1, y = 4 , text = "")
-#        scrollmode = gconf.client_get_default().get_string(LCDProcPluginConfigureDialog.gconf_keys['scrolling'])
-#        if not scrollmode:
-#            scrollmode = SCROLL_ROLLING
-        scrollmode = SCROLL_ROLLING
+        try:
+            scrollmode = Gio.Settings.new(self.BASE_KEY).get_string('scrolling')
+        except:
+            scrollmode = SCROLL_ROLLING
         self.scrolling = scroll_thread(scrollmode)
         self.scrolling.config([self.title_widget, self.album_widget, self.artist_widget, self.time_widget])
         self.scrolling.start()
@@ -323,6 +323,7 @@ class LCDProcPlugin (GObject.Object, Peas.Activatable):
         if self.inited:
             #plugin was running at some point
             self.shell.props.shell_player.disconnect(self.pec_id)
+            self.shell.props.shell_player.disconnect(self.pspc_id)
             del self.pec_id
             del self.pspc_id
         del self.shell
