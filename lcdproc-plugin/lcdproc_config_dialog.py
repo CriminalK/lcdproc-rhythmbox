@@ -19,9 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-import gobject
-#import gtk
-import gconf, gnome
+from gi.repository import GObject, Peas, RB
 
 #FIXME This must probably be redone since API changes in Rhythmbox
 
