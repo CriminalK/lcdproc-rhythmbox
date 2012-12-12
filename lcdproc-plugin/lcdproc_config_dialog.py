@@ -49,11 +49,11 @@ class LCDProcPluginConfigureDialog (GObject.Object, PeasGtk.Configurable):
 
         dialog.present()
         return dialog
-		
+
     def dialog_response (self, dialog, response):
         dialog.hide()
 
     def scrolling_combobox_changed (self, combobox):
-		scrolling = combobox.get_active()
-		self.settings.set_enum("scrolling", scrolling)
+        scrolling = combobox.get_active()
+        self.settings.set_enum("scrolling", scrolling)
         #__init__.LCDProcPlugin.scrolling.set_scrollmode(scrolling)
