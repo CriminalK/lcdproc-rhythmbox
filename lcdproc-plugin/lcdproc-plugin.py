@@ -179,10 +179,10 @@ class LCDProcPlugin (GObject.Object, Peas.Activatable):
                 return
             if self.streaming:
                 # do not append remaining time or track
-                self.scrolling.update_widget(self.time_widget, "Webradio" + ("%2d:%02d" % (time/60,  time % 60)).rjust(12," "))
+                self.time_widget.set_text("Webradio" + ("%2d:%02d" % (time/60,  time % 60)).rjust(12," "))
             else:
                 # append remaining time
-                self.scrolling.update_widget(self.time_widget, self.track + (("%2d:%02d -" % (time/60,  time % 60)) + self.duration).rjust(13," "))
+                self.time_widget.set_text(self.track + (("%2d:%02d -" % (time/60,  time % 60)) + self.duration).rjust(13," "))
         except:
             # connection to LCDd is broken
             self.connectionlost("time_callback");
@@ -233,10 +233,10 @@ class LCDProcPlugin (GObject.Object, Peas.Activatable):
 #            self.connectionlost("change_callback");
     
     def update_widgets(self):
-        self.scrolling.update_widget(self.title_widget, self.title)
-        self.scrolling.update_widget(self.album_widget, self.album)
-        self.scrolling.update_widget(self.artist_widget, self.artist)
-        self.scrolling.update_widget(self.time_widget, self.duration)
+        self.title_widget.set_text(self.title)
+        self.album_widget.set_text(self.album)
+        self.artist_widget.set_text(self.artist)
+        self.time_widget.set_text(self.duration)
         
     # copied from im-status plugin
     def playing_song_property_changed (self, sp, uri, property, old, new):
@@ -304,17 +304,17 @@ class LCDProcPlugin (GObject.Object, Peas.Activatable):
         self.screen1.set_priority("foreground")
         
         self.counter = 0
-        self.title_widget = self.screen1.add_string_widget("Widget1", x = 1, y = 1 , text = "")
-        self.artist_widget = self.screen1.add_string_widget("Widget2", x = 1, y = 2 , text = "")
-        self.album_widget = self.screen1.add_string_widget("Widget3", x = 1, y = 3 , text = "")
-        self.time_widget = self.screen1.add_string_widget("Widget4", x = 1, y = 4 , text = "")
+        self.title_widget = self.screen1.add_scroller_widget("Widget1", left = 1, top = 1, right = 20, bottom = 1, direction="h", speed = 1, text="")
+        self.artist_widget = self.screen1.add_scroller_widget("Widget2", left = 1, top = 2, right = 20, bottom = 2, direction="h", speed = 1, text="")
+        self.album_widget = self.screen1.add_scroller_widget("Widget3", left = 1, top = 3, right = 20, bottom = 3, direction="m", speed = 1, text="")
+        self.time_widget = self.screen1.add_scroller_widget("Widget4", left = 1, top = 4, right = 20, bottom = 4, direction="h", speed = 1, text="")
         try:
             scrollmode = Gio.Settings.new(self.BASE_KEY).get_string('scrolling')
         except:
             scrollmode = SCROLL_ROLLING
-        self.scrolling = scroll_thread(scrollmode)
-        self.scrolling.config([self.title_widget, self.album_widget, self.artist_widget, self.time_widget])
-        self.scrolling.start()
+#        self.scrolling = scroll_thread(scrollmode)
+#        self.scrolling.config([self.title_widget, self.album_widget, self.artist_widget, self.time_widget])
+#        self.scrolling.start()
         
         self.pec_idd = self.shell.props.shell_player.connect('elapsed-changed', self.time_callback)
         self.change_callback(self.shell.props.shell_player,self.shell.props.shell_player.get_playing_entry())
@@ -339,10 +339,10 @@ class LCDProcPlugin (GObject.Object, Peas.Activatable):
             return
         
         self.running = False;
-        self.scrolling.stop_scrolling()
+#        self.scrolling.stop_scrolling()
         self.shell.props.shell_player.disconnect(self.pec_idd)
         del self.pec_idd
-        del self.scrolling
+#        del self.scrolling
         del self.title_widget
         del self.album_widget
         del self.artist_widget
