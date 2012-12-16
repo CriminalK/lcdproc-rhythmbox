@@ -53,6 +53,9 @@ NORMAL_SONG_ALBUM  = 'album'
 SCROLL_BOUNCING="Bouncing"
 SCROLL_ROLLING="Rolling"
 
+#Screen duration
+DURATION = 1
+
 #def extract_artist_and_title(stream_song_title):
 #    details = stream_song_title.split('-')
 #    if len(details) > 1:
@@ -233,10 +236,18 @@ class LCDProcPlugin (GObject.Object, Peas.Activatable):
 #            self.connectionlost("change_callback");
     
     def update_widgets(self):
-        self.title_widget.set_text(self.title)
-        self.album_widget.set_text(self.album)
-        self.artist_widget.set_text(self.artist)
-        self.time_widget.set_text(self.duration)
+        self.set_correct_text(self.title_widget, self.title)
+        self.set_correct_text(self.album_widget, self.album)
+        self.set_correct_text(self.artist_widget, self.artist)
+        self.set_correct_text(self.time_widget, self.duration)
+
+    def set_correct_text(self, widget, text):
+        if (self.lcd.server_info["screen_width"] < len(text)):
+            if self.scrollmode == SCROLL_ROLLING:
+                text += SCROLL_ROLLING_SEPARATOR
+        else:
+            text = " " * ((self.lcd.server_info["screen_width"] - len(text)) / 2) + text
+        widget.set_text(text)
         
     # copied from im-status plugin
     def playing_song_property_changed (self, sp, uri, property, old, new):
@@ -296,25 +307,41 @@ class LCDProcPlugin (GObject.Object, Peas.Activatable):
             self.running = False
             return False
 
+        try:
+            self.scrollmode = Gio.Settings.new(self.BASE_KEY).get_string('scrolling')
+        except:
+            self.scrollmode = SCROLL_ROLLING
+#        self.scrolling = scroll_thread(scrollmode)
+#        self.scrolling.config([self.title_widget, self.album_widget, self.artist_widget, self.time_widget])
+#        self.scrolling.start()
+
+        if (self.scrollmode == SCROLL_ROLLING):
+            direction = "m"
+        else:
+            direction = "h"
+
         self.lcd.start_session()
         self.running = True
+        self.counter = 0
         
         self.screen1 = self.lcd.add_screen("Screen1")
         self.screen1.set_heartbeat("off")
         self.screen1.set_priority("foreground")
-        
-        self.counter = 0
-        self.title_widget = self.screen1.add_scroller_widget("Widget1", left = 1, top = 1, right = 20, bottom = 1, direction="h", speed = 1, text="")
-        self.artist_widget = self.screen1.add_scroller_widget("Widget2", left = 1, top = 2, right = 20, bottom = 2, direction="h", speed = 1, text="")
-        self.album_widget = self.screen1.add_scroller_widget("Widget3", left = 1, top = 3, right = 20, bottom = 3, direction="m", speed = 1, text="")
-        self.time_widget = self.screen1.add_scroller_widget("Widget4", left = 1, top = 4, right = 20, bottom = 4, direction="h", speed = 1, text="")
-        try:
-            scrollmode = Gio.Settings.new(self.BASE_KEY).get_string('scrolling')
-        except:
-            scrollmode = SCROLL_ROLLING
-#        self.scrolling = scroll_thread(scrollmode)
-#        self.scrolling.config([self.title_widget, self.album_widget, self.artist_widget, self.time_widget])
-#        self.scrolling.start()
+        self.screen1.set_duration(DURATION)
+
+        self.title_widget = self.screen1.add_scroller_widget("Widget1", left = 1, top = 1, right = self.lcd.server_info["screen_width"], bottom = 1, direction = direction, speed = 1, text="")
+        self.artist_widget = self.screen1.add_scroller_widget("Widget2", left = 1, top = 2, right = self.lcd.server_info["screen_width"], bottom = 2, direction = direction, speed = 1, text="")
+
+        if (self.lcd.server_info["screen_height"] < 4):
+            self.screen2 = self.lcd.add_screen("Screen2")
+            self.screen2.set_heartbeat("off")
+            self.screen2.set_priority("foreground")
+            self.screen2.set_duration(DURATION)
+            self.album_widget = self.screen2.add_scroller_widget("Widget3", left = 1, top = 1, right = self.lcd.server_info["screen_width"], bottom = 1, direction = direction, speed = 1, text="")
+            self.time_widget = self.screen2.add_scroller_widget("Widget4", left = 1, top = 2, right = self.lcd.server_info["screen_width"], bottom = 2, direction = direction, speed = 1, text="")
+        else:
+            self.album_widget = self.screen1.add_scroller_widget("Widget3", left = 1, top = 3, right = self.lcd.server_info["screen_width"], bottom = 3, direction = direction, speed = 1, text="")
+            self.time_widget = self.screen1.add_scroller_widget("Widget4", left = 1, top = 4, right = self.lcd.server_info["screen_width"], bottom = 4, direction = direction, speed = 1, text="")
         
         self.pec_idd = self.shell.props.shell_player.connect('elapsed-changed', self.time_callback)
         self.change_callback(self.shell.props.shell_player,self.shell.props.shell_player.get_playing_entry())
@@ -343,11 +370,16 @@ class LCDProcPlugin (GObject.Object, Peas.Activatable):
         self.shell.props.shell_player.disconnect(self.pec_idd)
         del self.pec_idd
 #        del self.scrolling
+        del self.scrollmode
         del self.title_widget
         del self.album_widget
         del self.artist_widget
         del self.time_widget
         del self.screen1
+        try:
+            del self.screen2
+        except:
+            pass
         self.lcd.tn.close()
         del self.lcd
         print "Plugin disconnected"
