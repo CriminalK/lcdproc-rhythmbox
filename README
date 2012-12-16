@@ -39,6 +39,10 @@ or symlink it directly to the folder in your local git clone:
 $ cd lcdproc-rhythmbox/lcdproc-plugin
 $ ln -s `pwd` ~/.local/share/rhythmbox/plugins/lcdproc-plugin
 
+Because of the transfer from GConf to GSettings (for post-0.13.3), the settings "template" will have to be ported to /usr/share/glib-2.0/schemas/
+$ cp org.gnome.rhythmbox.plugins.lcdproc-plugin.gschema.xml /usr/share/glib-2.0/schemas
+$ sudo glib-compile-schemas /usr/share/glib-2.0/schemas/
+
 Start Rhythmbox, goto Edit->Plugins and tick/activate "LCDproc plugin". Your display should now display the information on the current track or a notice that it is not playing currently.
 
 ################
