@@ -8,8 +8,28 @@
 
 <schema id="org.gnome.rhythmbox.plugins.lcdproc-plugin" path="/org/gnome/rhythmbox/plugins/lcdproc-plugin/">
 
-<key name='scrolling' enum='org.gnome.rhythmbox.plugins.lcdproc-plugin.scrolling_list'>
+<key name="scrolling" enum="org.gnome.rhythmbox.plugins.lcdproc-plugin.scrolling_list">
 <default>"Rolling"</default>
+</key>
+
+<key name="port" type="i">
+<default>13666</default>
+</key>
+
+<key name="address" type="s">
+<default>"localhost"</default>
+</key>
+
+<key name="scrollduration" type="i">
+<default>5</default>
+</key>
+
+<key name="screenduration" type="i">
+<default>5</default>
+</key>
+
+<key name="scrollseparator" type="s">
+<default>"  **  "</default>
 </key>
 
 </schema>

@@ -28,32 +28,47 @@ from gi.repository import Gtk
 
 class LCDProcPluginConfigureDialog (GObject.Object, PeasGtk.Configurable):
     __gtype_name__ = 'LCDProcPluginConfig'
-    BASE_KEY = "org.gnome.rhythmbox.plugins.lcdproc-plugin"
+    object = GObject.property(type=GObject.Object)
 
     def __init__(self):
         GObject.Object.__init__(self)
-        self.settings = Gio.Settings.new(self.BASE_KEY)
+        self.settings = Gio.Settings("org.gnome.rhythmbox.plugins.lcdproc-plugin")
 
     def do_create_configure_widget(self):
-        builder_file = rb.find_plugin_file(self, "config_dlg.glade")
-        builder = Gtk.Builder()
-        builder.add_from_file(builder_file)
+        ui_file = rb.find_plugin_file(self, "lcdproc_config.ui")
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file(ui_file)
 
-        dialog = builder.get_object('config_dialog')
-        scrolling_combobox = builder.get_object("scrolling_combobox")
+        grid = self.builder.get_object("grid")
 
-        scrolling_combobox.set_active(self.settings.get_enum("scrolling"))
+        entry_address = self.builder.get_object("entry_address")
+        self.settings.bind("address", entry_address, "text", Gio.SettingsBindFlags.GET_NO_CHANGES)
 
-        dialog.connect("response", self.dialog_response)
-        scrolling_combobox.connect("changed", self.scrolling_combobox_changed)
+        spinbutton_port = self.builder.get_object("spinbutton_port")
+        self.settings.bind("port", spinbutton_port, "value", Gio.SettingsBindFlags.GET_NO_CHANGES)
 
-        dialog.present()
-        return dialog
+        hscale_screenduration = self.builder.get_object("hscale_screenduration")
+        self.settings.bind("screenduration", hscale_screenduration.props.adjustment, "value", Gio.SettingsBindFlags.GET_NO_CHANGES)
 
-    def dialog_response (self, dialog, response):
-        dialog.hide()
+        self.hscale_scrollduration = self.builder.get_object("hscale_scrollduration")
+        self.settings.bind("scrollduration", self.hscale_scrollduration.props.adjustment, "value", Gio.SettingsBindFlags.GET_NO_CHANGES)
 
-    def scrolling_combobox_changed (self, combobox):
-        scrolling = combobox.get_active()
+        self.entry_scrollseparator = self.builder.get_object("entry_scrollseparator")
+        self.settings.bind("scrollseparator", self.entry_scrollseparator, "text", Gio.SettingsBindFlags.GET_NO_CHANGES)
+
+        comboboxtext_scrolling = self.builder.get_object("comboboxtext_scrolling")
+        comboboxtext_scrolling.connect("changed", self.comboboxtext_scrolling_changed)
+        comboboxtext_scrolling.set_active(self.settings.get_enum("scrolling"))
+
+        return grid
+
+    def comboboxtext_scrolling_changed(self, comboboxtext):
+        scrolling = comboboxtext.get_active()
         self.settings.set_enum("scrolling", scrolling)
-        #__init__.LCDProcPlugin.scrolling.set_scrollmode(scrolling)
+
+        if (self.settings.get_string("scrolling") == "Rolling"):
+            self.hscale_scrollduration.set_sensitive(True)
+            self.entry_scrollseparator.set_sensitive(True)
+        else:
+            self.hscale_scrollduration.set_sensitive(False)
+            self.entry_scrollseparator.set_sensitive(False)
